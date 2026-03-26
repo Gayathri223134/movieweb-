@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CINÉMA NOIR — Movie Review Universe</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #060608;
+    --deep: #0d0d12;
+    --card: #111118;
+    --border: #1e1e2a;
+    --gold: #d4a843;
+    --gold2: #f0c060;
+    --red: #e63946;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --accent: #5b4fcf;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--gold);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(212,168,67,0.5);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9998;
+    transition: all 0.15s ease;
+  }
+  .cursor-ring.hovering { width: 60px; height: 60px; border-color: var(--gold); }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; width: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 60px;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(6,6,8,0.95) 0%, transparent 100%);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-logo span { color: var(--red); }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 400;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--gold);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-links a.active { color: var(--text); }
+
+  /* PAGES */
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: block; }
+
+  /* ============ HOME PAGE ============ */
+  #page-home { position: relative; overflow: hidden; }
+
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 120px 60px 80px;
+    position: relative;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(91,79,207,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(230,57,70,0.1) 0%, transparent 50%);
+  }
+  .hero-film-strip {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 45%;
+    overflow: hidden;
+  }
+  .hero-film-strip::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to right, var(--black) 0%, transparent 40%);
+    z-index: 2;
+  }
+  .film-strip-inner {
+    display: flex; flex-direction: column; gap: 0;
+    animation: scrollStrip 20s linear infinite;
+    height: 200%;
+  }
+  @keyframes scrollStrip {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+  }
+  .film-cell {
+    width: 100%; aspect-ratio: 16/9;
+    overflow: hidden;
+    position: relative;
+    border-top: 8px solid var(--black);
+    border-bottom: 8px solid var(--black);
+  }
+  .film-cell img {
+    width: 100%; height: 100%;
+    object-fit: cover; opacity: 0.5;
+    filter: sepia(20%) contrast(110%);
+  }
+
+  .hero-content { position: relative; z-index: 3; max-width: 600px; }
+  .hero-eyebrow {
+    font-size: 11px; letter-spacing: 5px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-eyebrow::before {
+    content: ''; width: 40px; height: 1px; background: var(--gold);
+  }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 9vw, 130px);
+    line-height: 0.92;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+  h1 em {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-style: italic;
+    display: block;
+  }
+  .hero-desc {
+    font-size: 16px; line-height: 1.7;
+    color: var(--muted); max-width: 420px;
+    margin-bottom: 40px;
+  }
+  .hero-cta {
+    display: flex; gap: 16px; align-items: center;
+  }
+  .btn-primary {
+    padding: 14px 36px;
+    background: var(--gold);
+    color: var(--black);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500; font-size: 13px;
+    letter-spacing: 2px; text-transform: uppercase;
+    border: none; cursor: none;
+    position: relative; overflow: hidden;
+    transition: all 0.3s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-primary::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--gold2); transform: scaleX(0);
+    transform-origin: right; transition: transform 0.4s ease;
+  }
+  .btn-primary:hover::before { transform: scaleX(1); transform-origin: left; }
+  .btn-primary span { position: relative; z-index: 1; }
+  .btn-ghost {
+    padding: 14px 36px;
+    background: transparent;
+    color: var(--text);
+    font-weight: 400; font-size: 13px;
+    letter-spacing: 2px; text-transform: uppercase;
+    border: 1px solid var(--border);
+    cursor: none; transition: all 0.3s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+  .hero-stats {
+    display: flex; gap: 48px; margin-top: 60px;
+    padding-top: 40px; border-top: 1px solid var(--border);
+  }
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px; color: var(--gold); letter-spacing: 2px;
+  }
+  .stat-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+  /* FEATURED SECTION */
+  .section { padding: 80px 60px; }
+  .section-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 48px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px; letter-spacing: 2px; line-height: 1;
+    color: var(--text);
+  }
+  .section-title span { color: var(--gold); }
+  .section-subtitle {
+    font-size: 12px; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .view-all {
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    display: flex; align-items: center; gap: 8px;
+    transition: color 0.3s;
+  }
+  .view-all:hover { color: var(--gold); }
+  .view-all::after { content: '→'; transition: transform 0.3s; }
+  .view-all:hover::after { transform: translateX(4px); }
+
+  /* MOVIE CARDS */
+  .movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 2px;
+  }
+  .movie-card {
+    position: relative;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+    cursor: none;
+    background: var(--card);
+    group: true;
+  }
+  .movie-poster {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.6s;
+    filter: saturate(0.8) brightness(0.85);
+  }
+  .movie-card:hover .movie-poster {
+    transform: scale(1.08);
+    filter: saturate(1.1) brightness(0.6);
+  }
+  .movie-card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(6,6,8,0.95) 0%, rgba(6,6,8,0.3) 50%, transparent 100%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 24px;
+    transition: background 0.4s;
+  }
+  .movie-card:hover .movie-card-overlay {
+    background: linear-gradient(to top, rgba(6,6,8,0.98) 0%, rgba(6,6,8,0.7) 60%, rgba(6,6,8,0.2) 100%);
+  }
+  .movie-genre-tag {
+    position: absolute; top: 16px; left: 16px;
+    padding: 4px 10px;
+    background: var(--red);
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 500; color: white;
+  }
+  .movie-year {
+    position: absolute; top: 16px; right: 16px;
+    font-size: 11px; color: var(--muted); letter-spacing: 1px;
+  }
+  .movie-card-content { position: relative; }
+  .movie-stars { display: flex; gap: 3px; margin-bottom: 8px; }
+  .star { font-size: 12px; color: var(--gold); }
+  .star.empty { color: var(--border); }
+  .movie-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px; letter-spacing: 1px;
+    line-height: 1.1; margin-bottom: 6px;
+  }
+  .movie-director { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .movie-card-actions {
+    display: flex; gap: 10px; margin-top: 16px;
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.4s ease;
+  }
+  .movie-card:hover .movie-card-actions {
+    opacity: 1; transform: translateY(0);
+  }
+  .btn-sm {
+    padding: 8px 16px; font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase;
+    border: none; cursor: none; font-weight: 500;
+    transition: all 0.3s;
+  }
+  .btn-sm-gold { background: var(--gold); color: var(--black); }
+  .btn-sm-gold:hover { background: var(--gold2); }
+  .btn-sm-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--text); }
+  .btn-sm-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* MARQUEE */
+  .marquee-wrap {
+    padding: 20px 0;
+    background: var(--gold);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .marquee-track {
+    display: inline-flex; gap: 60px;
+    animation: marquee 20s linear infinite;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .marquee-item {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px; letter-spacing: 4px;
+    color: var(--black);
+    display: flex; align-items: center; gap: 24px;
+  }
+  .marquee-item::after { content: '✦'; font-size: 10px; }
+
+  /* ============ MOVIES PAGE ============ */
+  #page-movies { padding-top: 100px; }
+
+  .page-header {
+    padding: 60px 60px 40px;
+    position: relative; overflow: hidden;
+  }
+  .page-header::before {
+    content: attr(data-title);
+    position: absolute; right: 60px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 160px; letter-spacing: 8px;
+    color: rgba(255,255,255,0.02);
+    pointer-events: none; white-space: nowrap;
+  }
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px; letter-spacing: 3px; line-height: 1;
+    color: var(--text);
+  }
+  .page-title span { color: var(--gold); }
+
+  .filter-bar {
+    padding: 20px 60px;
+    display: flex; gap: 12px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .filter-btn {
+    padding: 8px 20px; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); cursor: none; transition: all 0.3s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--gold); border-color: var(--gold);
+    color: var(--black); font-weight: 500;
+  }
+
+  .movies-page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2px;
+    padding: 2px;
+  }
+  .movie-card-sm {
+    position: relative;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+    cursor: none;
+    background: var(--card);
+  }
+
+  /* ============ REVIEWS PAGE ============ */
+  #page-reviews { padding-top: 100px; }
+
+  .reviews-layout {
+    display: grid; grid-template-columns: 1fr 380px;
+    gap: 2px; padding: 2px 60px 60px;
+  }
+  .reviews-list { display: flex; flex-direction: column; gap: 2px; }
+  .review-card {
+    background: var(--card);
+    padding: 32px 36px;
+    display: grid; grid-template-columns: 80px 1fr;
+    gap: 24px; align-items: start;
+    border-left: 3px solid transparent;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .review-card:hover { border-left-color: var(--gold); background: #141420; }
+  .review-movie-thumb {
+    aspect-ratio: 2/3;
+    object-fit: cover; width: 80px;
+    filter: saturate(0.7);
+    transition: filter 0.3s;
+  }
+  .review-card:hover .review-movie-thumb { filter: saturate(1); }
+  .review-movie-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .review-meta {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px; font-size: 11px;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+  }
+  .review-score {
+    padding: 2px 10px;
+    background: var(--gold);
+    color: var(--black); font-weight: 500;
+    font-size: 12px; letter-spacing: 1px;
+  }
+  .review-text { font-size: 15px; line-height: 1.7; color: var(--muted); }
+  .review-author {
+    margin-top: 16px; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); display: flex; align-items: center; gap: 8px;
+  }
+  .review-author::before { content: '—'; color: var(--gold); }
+
+  /* SUBMIT REVIEW PANEL */
+  .submit-panel {
+    background: var(--card);
+    padding: 36px;
+    position: sticky; top: 100px;
+    height: fit-content;
+    border: 1px solid var(--border);
+  }
+  .panel-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px; letter-spacing: 2px;
+    margin-bottom: 4px; color: var(--text);
+  }
+  .panel-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block; font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 12px 16px;
+    background: var(--deep); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; transition: border-color 0.3s;
+    resize: none; outline: none;
+    cursor: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--gold);
+  }
+  .form-textarea { min-height: 120px; }
+  .form-select option { background: var(--deep); }
+
+  /* STAR RATING INPUT */
+  .star-rating-input {
+    display: flex; gap: 4px;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+  }
+  .star-rating-input input { display: none; }
+  .star-rating-input label {
+    font-size: 28px; color: var(--border);
+    cursor: none; transition: color 0.2s;
+  }
+  .star-rating-input label:hover,
+  .star-rating-input label:hover ~ label,
+  .star-rating-input input:checked ~ label {
+    color: var(--gold);
+  }
+
+  /* ============ TOP RATED PAGE ============ */
+  #page-toprated { padding-top: 100px; }
+  .top-list { padding: 20px 60px 60px; }
+  .top-item {
+    display: grid;
+    grid-template-columns: 80px 100px 1fr auto;
+    gap: 24px; align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    transition: all 0.3s;
+    cursor: none;
+  }
+  .top-item:hover { padding-left: 12px; border-bottom-color: var(--gold); }
+  .top-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px; color: rgba(255,255,255,0.05);
+    letter-spacing: 2px; line-height: 1;
+    text-align: center;
+  }
+  .top-item:hover .top-rank { color: var(--gold); opacity: 0.3; }
+  .top-thumb {
+    aspect-ratio: 2/3; object-fit: cover;
+    height: 120px; filter: saturate(0.6);
+    transition: filter 0.3s;
+  }
+  .top-item:hover .top-thumb { filter: saturate(1); }
+  .top-info { display: flex; flex-direction: column; gap: 6px; }
+  .top-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px; letter-spacing: 1px;
+  }
+  .top-meta { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .top-synopsis { font-size: 14px; color: var(--muted); line-height: 1.6; margin-top: 8px; max-width: 500px; }
+  .top-score {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    min-width: 80px;
+  }
+  .score-circle {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px; color: var(--gold);
+    position: relative;
+  }
+  .score-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+  /* ============ TRAILERS PAGE ============ */
+  #page-trailers { padding-top: 100px; }
+  .trailers-grid {
+    padding: 20px 60px 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 24px;
+  }
+  .trailer-card {
+    background: var(--card);
+    overflow: hidden;
+    cursor: none;
+    transition: transform 0.4s, box-shadow 0.4s;
+    border: 1px solid var(--border);
+  }
+  .trailer-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    border-color: var(--gold);
+  }
+  .trailer-embed {
+    position: relative; width: 100%; aspect-ratio: 16/9;
+    background: var(--deep); overflow: hidden;
+  }
+  .trailer-embed iframe {
+    width: 100%; height: 100%;
+    border: none; pointer-events: auto;
+  }
+  .trailer-info { padding: 20px 24px; }
+  .trailer-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .trailer-subtitle { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+
+  /* ============ CONTACT PAGE ============ */
+  #page-contact { padding-top: 100px; }
+  .contact-layout {
+    display: grid; grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 100px);
+  }
+  .contact-left {
+    padding: 80px 60px;
+    background: var(--card);
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .contact-left::before {
+    content: 'CONTACT';
+    position: absolute; bottom: -40px; left: -20px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 180px; color: rgba(255,255,255,0.02);
+    letter-spacing: 10px; white-space: nowrap;
+    pointer-events: none;
+  }
+  .contact-big-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px; line-height: 0.9;
+    letter-spacing: 3px; margin-bottom: 28px;
+  }
+  .contact-big-title span { color: var(--gold); display: block; }
+  .contact-desc { font-size: 16px; color: var(--muted); line-height: 1.8; max-width: 360px; margin-bottom: 40px; }
+  .contact-info { display: flex; flex-direction: column; gap: 20px; }
+  .contact-item {
+    display: flex; align-items: center; gap: 16px;
+    font-size: 14px;
+  }
+  .contact-icon {
+    width: 40px; height: 40px;
+    background: var(--deep); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .contact-right {
+    padding: 80px 60px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .contact-form-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px; letter-spacing: 2px; margin-bottom: 32px;
+    color: var(--text);
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .submit-btn {
+    width: 100%; padding: 16px;
+    background: var(--gold); color: var(--black);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500; font-size: 12px;
+    letter-spacing: 3px; text-transform: uppercase;
+    border: none; cursor: none;
+    position: relative; overflow: hidden;
+    transition: all 0.3s; margin-top: 8px;
+  }
+  .submit-btn:hover { background: var(--gold2); }
+  .success-msg {
+    display: none; padding: 16px; background: rgba(212,168,67,0.1);
+    border: 1px solid var(--gold); color: var(--gold);
+    font-size: 13px; letter-spacing: 1px; text-align: center;
+    margin-top: 12px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(6,6,8,0.95); z-index: 1000;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(20px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid var(--border);
+    padding: 48px; max-width: 600px; width: 90%;
+    position: relative; animation: modalIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-close {
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: none; color: var(--muted);
+    font-size: 24px; cursor: none; transition: color 0.3s;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-movie-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px; letter-spacing: 2px; margin-bottom: 8px;
+  }
+  .modal-meta {
+    display: flex; gap: 16px; margin-bottom: 20px;
+    font-size: 12px; color: var(--muted); letter-spacing: 1px;
+  }
+  .modal-synopsis {
+    font-size: 15px; line-height: 1.8; color: var(--muted);
+    margin-bottom: 24px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 30px; right: 30px;
+    background: var(--gold); color: var(--black);
+    padding: 14px 24px; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 500; z-index: 9999;
+    transform: translateY(100px) opacity(0);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--gold); }
+
+  /* FOOTER */
+  footer {
+    padding: 60px; background: var(--deep);
+    border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 40px; align-items: start;
+  }
+  .footer-brand .nav-logo { margin-bottom: 12px; display: inline-flex; }
+  .footer-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .footer-col-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px; letter-spacing: 2px;
+    margin-bottom: 16px; color: var(--text);
+  }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-links a {
+    font-size: 13px; color: var(--muted);
+    text-decoration: none; transition: color 0.3s;
+    letter-spacing: 1px;
+  }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-bottom {
+    padding: 20px 60px; background: var(--deep);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--muted); letter-spacing: 1px;
+  }
+
+  /* LOADING ANIMATION */
+  .page-transition {
+    position: fixed; inset: 0; background: var(--black);
+    z-index: 500; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  }
+  .page-transition.active { opacity: 1; pointer-events: all; }
+  .loader-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px; letter-spacing: 8px; color: var(--gold);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 24px 60px; }
+    .hero-film-strip { display: none; }
+    .section { padding: 60px 24px; }
+    .filter-bar, .top-list, .trailers-grid { padding-left: 24px; padding-right: 24px; }
+    .reviews-layout { grid-template-columns: 1fr; padding: 0 24px 60px; }
+    .contact-layout { grid-template-columns: 1fr; }
+    .contact-left, .contact-right { padding: 60px 24px; }
+    .footer { grid-template-columns: 1fr; padding: 40px 24px; }
+    .footer-bottom { padding: 20px 24px; }
+    .movies-page-grid { padding: 0; }
+    .page-header { padding: 40px 24px 30px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CUSTOM CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- PAGE TRANSITION -->
+<div class="page-transition" id="pageTransition">
+  <div class="loader-logo">CINÉMA NOIR</div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#" onclick="showPage('home'); return false;">
+    🎬 <span>CINÉMA</span>&nbsp;NOIR
+  </a>
+  <ul class="nav-links">
+    <li><a href="#" onclick="showPage('home'); return false;" class="active" id="nav-home">Home</a></li>
+    <li><a href="#" onclick="showPage('movies'); return false;" id="nav-movies">Movies</a></li>
+    <li><a href="#" onclick="showPage('reviews'); return false;" id="nav-reviews">Reviews</a></li>
+    <li><a href="#" onclick="showPage('toprated'); return false;" id="nav-toprated">Top Rated</a></li>
+    <li><a href="#" onclick="showPage('trailers'); return false;" id="nav-trailers">Trailers</a></li>
+    <li><a href="#" onclick="showPage('contact'); return false;" id="nav-contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- ===== HOME PAGE ===== -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-film-strip">
+      <div class="film-strip-inner" id="filmStrip"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">The Ultimate Cinema Guide</div>
+      <h1>EVERY<br>FRAME<br><em>Matters.</em></h1>
+      <p class="hero-desc">Deep dives, honest ratings, and passionate reviews for the serious film lover. No algorithms. Just cinema.</p>
+      <div class="hero-cta">
+        <a href="#" class="btn-primary" onclick="showPage('movies'); return false;"><span>Explore Films</span></a>
+        <a href="#" class="btn-ghost" onclick="showPage('reviews'); return false;">Write a Review</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-num">4,200+</span><span class="stat-label">Films Reviewed</span></div>
+        <div class="stat"><span class="stat-num">18K</span><span class="stat-label">Community Reviews</span></div>
+        <div class="stat"><span class="stat-num">98</span><span class="stat-label">Genres Covered</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee-track" id="marqueeTrack"></div>
+  </div>
+
+  <!-- FEATURED MOVIES -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-subtitle">Curated Selection</div>
+        <h2 class="section-title">FEATURED <span>FILMS</span></h2>
+      </div>
+      <a href="#" class="view-all" onclick="showPage('movies'); return false;">All Movies</a>
+    </div>
+    <div class="movies-grid" id="featuredGrid"></div>
+  </section>
+
+  <!-- TOP RATED PREVIEW -->
+  <section class="section" style="background: var(--deep); padding-top: 60px; padding-bottom: 60px;">
+    <div class="section-header">
+      <div>
+        <div class="section-subtitle">Community Favorites</div>
+        <h2 class="section-title">TOP <span>RATED</span></h2>
+      </div>
+      <a href="#" class="view-all" onclick="showPage('toprated'); return false;">Full List</a>
+    </div>
+    <div id="topRatedPreview"></div>
+  </section>
+
+  <footer>
+    <div class="footer-brand">
+      <div class="nav-logo">🎬 <span>CINÉMA</span>&nbsp;NOIR</div>
+      <p class="footer-desc">Your guide to the finest in world cinema. Honest reviews, passionate writing, and an obsessive love for the craft.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Navigate</div>
+      <ul class="footer-links">
+        <li><a href="#" onclick="showPage('home'); return false;">Home</a></li>
+        <li><a href="#" onclick="showPage('movies'); return false;">Movies</a></li>
+        <li><a href="#" onclick="showPage('reviews'); return false;">Reviews</a></li>
+        <li><a href="#" onclick="showPage('toprated'); return false;">Top Rated</a></li>
+        <li><a href="#" onclick="showPage('trailers'); return false;">Trailers</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Genres</div>
+      <ul class="footer-links">
+        <li><a href="#">Drama</a></li>
+        <li><a href="#">Thriller</a></li>
+        <li><a href="#">Sci-Fi</a></li>
+        <li><a href="#">Horror</a></li>
+        <li><a href="#">Animation</a></li>
+      </ul>
+    </div>
+  </footer>
+  <div class="footer-bottom">
+    <span>© 2025 CINÉMA NOIR — All Rights Reserved</span>
+    <span>Built with passion for cinema</span>
+  </div>
+</div>
+
+<!-- ===== MOVIES PAGE ===== -->
+<div class="page" id="page-movies">
+  <div class="page-header" data-title="MOVIES">
+    <h1 class="page-title">ALL <span>MOVIES</span></h1>
+    <p style="color: var(--muted); font-size: 14px; margin-top: 8px; letter-spacing: 1px;">Browse our full collection · Filter by genre</p>
+  </div>
+  <div class="filter-bar" id="filterBar"></div>
+  <div class="movies-page-grid" id="moviesPageGrid"></div>
+</div>
+
+<!-- ===== REVIEWS PAGE ===== -->
+<div class="page" id="page-reviews">
+  <div class="page-header" data-title="REVIEWS">
+    <h1 class="page-title">CRITIC <span>REVIEWS</span></h1>
+    <p style="color: var(--muted); font-size: 14px; margin-top: 8px; letter-spacing: 1px;">Community & expert voices</p>
+  </div>
+  <div class="reviews-layout">
+    <div class="reviews-list" id="reviewsList"></div>
+    <div>
+      <div class="submit-panel">
+        <div class="panel-title">YOUR REVIEW</div>
+        <div class="panel-subtitle">Share your thoughts with the community</div>
+        <div class="form-group">
+          <label class="form-label">Select Movie</label>
+          <select class="form-select" id="reviewMovie">
+            <option value="">— Choose a film —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Rating</label>
+          <div class="star-rating-input">
+            <input type="radio" name="rating" id="s5" value="5"><label for="s5">★</label>
+            <input type="radio" name="rating" id="s4" value="4"><label for="s4">★</label>
+            <input type="radio" name="rating" id="s3" value="3"><label for="s3">★</label>
+            <input type="radio" name="rating" id="s2" value="2"><label for="s2">★</label>
+            <input type="radio" name="rating" id="s1" value="1"><label for="s1">★</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input type="text" class="form-input" id="reviewName" placeholder="Anonymous Cinephile">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Review</label>
+          <textarea class="form-textarea" id="reviewText" placeholder="What made this film unforgettable — or not?"></textarea>
+        </div>
+        <button class="submit-btn" onclick="submitReview()">Submit Review →</button>
+        <div class="success-msg" id="reviewSuccess">✦ Review submitted successfully!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOP RATED PAGE ===== -->
+<div class="page" id="page-toprated">
+  <div class="page-header" data-title="TOP RATED">
+    <h1 class="page-title">TOP <span>RATED</span></h1>
+    <p style="color: var(--muted); font-size: 14px; margin-top: 8px; letter-spacing: 1px;">The definitive list of essential cinema</p>
+  </div>
+  <div class="top-list" id="topRatedList"></div>
+</div>
+
+<!-- ===== TRAILERS PAGE ===== -->
+<div class="page" id="page-trailers">
+  <div class="page-header" data-title="TRAILERS">
+    <h1 class="page-title">WATCH <span>TRAILERS</span></h1>
+    <p style="color: var(--muted); font-size: 14px; margin-top: 8px; letter-spacing: 1px;">Official trailers embedded from YouTube</p>
+  </div>
+  <div class="trailers-grid" id="trailersGrid"></div>
+</div>
+
+<!-- ===== CONTACT PAGE ===== -->
+<div class="page" id="page-contact">
+  <div class="contact-layout">
+    <div class="contact-left">
+      <h2 class="contact-big-title">GET IN<br><span>TOUCH</span></h2>
+      <p class="contact-desc">Have a movie suggestion, a burning review to share, or want to collaborate? We're all ears.</p>
+      <div class="contact-info">
+        <div class="contact-item"><div class="contact-icon">✉</div> hello@cinemanoir.com</div>
+        <div class="contact-item"><div class="contact-icon">📍</div> Los Angeles, California</div>
+        <div class="contact-item"><div class="contact-icon">🕐</div> Mon–Fri, 9am–6pm PST</div>
+      </div>
+    </div>
+    <div class="contact-right">
+      <h3 class="contact-form-title">SEND A MESSAGE</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input type="text" class="form-input" id="cfirst" placeholder="Jean-Luc">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input type="text" class="form-input" id="clast" placeholder="Godard">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="cemail" placeholder="you@cinema.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <select class="form-select" id="csubject">
+          <option>Movie Suggestion</option>
+          <option>Write for Us</option>
+          <option>Partnership</option>
+          <option>General Inquiry</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea class="form-textarea" id="cmessage" placeholder="Tell us something cinematic..."></textarea>
+      </div>
+      <button class="submit-btn" onclick="submitContact()">Send Message →</button>
+      <div class="success-msg" id="contactSuccess">✦ Message received — we'll be in touch soon!</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const MOVIES = [
+  { id: 1, title: "The Godfather", director: "Francis Ford Coppola", year: 1972, genre: "Drama", rating: 4.9, score: 98, synopsis: "The aging patriarch of an organized crime dynasty transfers control to his reluctant son.", color: "#8B3A3A", trailer: "https://www.youtube.com/embed/sY1S34973zA", poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&q=80" },
+  { id: 2, title: "Blade Runner 2049", director: "Denis Villeneuve", year: 2017, genre: "Sci-Fi", rating: 4.7, score: 94, synopsis: "A young blade runner discovers a long-buried secret that leads him to track down former blade runner Rick Deckard.", color: "#2A4A6B", trailer: "https://www.youtube.com/embed/gCcx85zbxz4", poster: "https://images.unsplash.com/photo-1518929458119-e5bf444c30f4?w=400&q=80" },
+  { id: 3, title: "Parasite", director: "Bong Joon-ho", year: 2019, genre: "Thriller", rating: 4.8, score: 96, synopsis: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.", color: "#3D5A3E", trailer: "https://www.youtube.com/embed/5xH0HfJHsaY", poster: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?w=400&q=80" },
+  { id: 4, title: "Dune: Part Two", director: "Denis Villeneuve", year: 2024, genre: "Sci-Fi", rating: 4.6, score: 93, synopsis: "Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.", color: "#6B5A2A", trailer: "https://www.youtube.com/embed/Way9Dexny3w", poster: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80" },
+  { id: 5, title: "Mulholland Drive", director: "David Lynch", year: 2001, genre: "Mystery", rating: 4.5, score: 91, synopsis: "After a car wreck on the winding Mulholland Drive renders a woman amnesiac, she and a perky Hollywood-hopeful search for clues and answers.", color: "#4A2A5A", trailer: "https://www.youtube.com/embed/x5iMtEKDtbk", poster: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=80" },
+  { id: 6, title: "Oppenheimer", director: "Christopher Nolan", year: 2023, genre: "Drama", rating: 4.7, score: 95, synopsis: "The story of J. Robert Oppenheimer's role in the development of the atomic bomb during World War II.", color: "#5A3A2A", trailer: "https://www.youtube.com/embed/uYPbbksJxIg", poster: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80" },
+  { id: 7, title: "The Zone of Interest", director: "Jonathan Glazer", year: 2023, genre: "Drama", rating: 4.6, score: 92, synopsis: "The commandant of Auschwitz and his wife attempt to build a dream life for their family next to the camp.", color: "#3A4A3A", trailer: "https://www.youtube.com/embed/MijPH3ixqQQ", poster: "https://images.unsplash.com/photo-1500622944204-b135684e99fd?w=400&q=80" },
+  { id: 8, title: "Killers of the Flower Moon", director: "Martin Scorsese", year: 2023, genre: "Drama", rating: 4.5, score: 89, synopsis: "The Osage Indians were murdered systematically after oil was discovered on their land.", color: "#5A4A2A", trailer: "https://www.youtube.com/embed/EP34Yoxs3FQ", poster: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80" },
+];
+
+const REVIEWS = [
+  { movie: "The Godfather", author: "Marcus Delacroix", rating: 5, score: 98, text: "Cinema's greatest achievement in storytelling. Every frame is a painting, every line of dialogue is mythic. Coppola created something beyond film — he created a cultural monument that defines what great art can be.", date: "March 2025" },
+  { movie: "Blade Runner 2049", author: "Priya Nair", rating: 5, score: 94, text: "Villeneuve doesn't just honor Scott's original — he transcends it. Deakins' cinematography is the most beautiful ever committed to digital. A meditation on consciousness, memory, and what it means to be real.", date: "February 2025" },
+  { movie: "Parasite", author: "Chen Wei", rating: 5, score: 96, text: "Every rewatch reveals new layers of genius. The screenplay is flawless — a Trojan horse that smuggles devastating social commentary inside the most gripping thriller of the century.", date: "January 2025" },
+  { movie: "Oppenheimer", author: "Sofia Esposito", rating: 4, score: 89, text: "Nolan at the absolute height of his powers. The IMAX photography of the Trinity test is simply the greatest sequence in blockbuster cinema. Cillian Murphy carries the weight of the world with quiet devastation.", date: "December 2024" },
+];
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+function renderStars(rating, size = 12) {
+  let stars = '';
+  for (let i = 1; i <= 5; i++) {
+    stars += `<span class="star ${i <= Math.round(rating) ? '' : 'empty'}" style="font-size:${size}px">★</span>`;
+  }
+  return stars;
+}
+
+function createMovieCard(movie, size = 'normal') {
+  return `
+    <div class="movie-card ${size === 'sm' ? 'movie-card-sm' : ''}" onclick="openModal(${movie.id})" style="background: linear-gradient(135deg, ${movie.color}33, var(--card))">
+      <img src="${movie.poster}" alt="${movie.title}" class="movie-poster" onerror="this.style.display='none'">
+      <div class="movie-card-overlay">
+        <div class="movie-genre-tag">${movie.genre}</div>
+        <div class="movie-year">${movie.year}</div>
+        <div class="movie-card-content">
+          <div class="movie-stars">${renderStars(movie.rating)}</div>
+          <div class="movie-title">${movie.title}</div>
+          <div class="movie-director">dir. ${movie.director}</div>
+          <div class="movie-card-actions">
+            <button class="btn-sm btn-sm-gold" onclick="event.stopPropagation(); openModal(${movie.id})">Details</button>
+            <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation(); showPage('trailers')">Trailer</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderFeaturedGrid() {
+  const grid = document.getElementById('featuredGrid');
+  if (grid) grid.innerHTML = MOVIES.slice(0, 6).map(m => createMovieCard(m)).join('');
+}
+
+function renderMoviesPage() {
+  const grid = document.getElementById('moviesPageGrid');
+  if (grid) grid.innerHTML = MOVIES.map(m => createMovieCard(m, 'sm')).join('');
+}
+
+function renderFilters() {
+  const bar = document.getElementById('filterBar');
+  if (!bar) return;
+  const genres = ['All', ...new Set(MOVIES.map(m => m.genre))];
+  bar.innerHTML = genres.map((g, i) =>
+    `<button class="filter-btn ${i === 0 ? 'active' : ''}" onclick="filterMovies('${g}', this)">${g}</button>`
+  ).join('');
+}
+
+function filterMovies(genre, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = genre === 'All' ? MOVIES : MOVIES.filter(m => m.genre === genre);
+  const grid = document.getElementById('moviesPageGrid');
+  if (grid) {
+    grid.style.opacity = 0;
+    setTimeout(() => {
+      grid.innerHTML = filtered.map(m => createMovieCard(m, 'sm')).join('');
+      grid.style.opacity = 1;
+      grid.style.transition = 'opacity 0.3s';
+    }, 150);
+  }
+}
+
+function renderReviews() {
+  const list = document.getElementById('reviewsList');
+  if (!list) return;
+  // Combine static + stored
+  const stored = JSON.parse(localStorage.getItem('cinemaReviews') || '[]');
+  const allReviews = [...stored.reverse(), ...REVIEWS];
+  list.innerHTML = allReviews.map(r => `
+    <div class="review-card">
+      <div></div>
+      <div>
+        <div class="review-movie-title">${r.movie}</div>
+        <div class="review-meta">
+          <span class="review-score">${renderStars(r.rating, 11)}</span>
+          <span>${r.score || (r.rating * 20)}/100</span>
+          <span>${r.date || 'Recently'}</span>
+        </div>
+        <p class="review-text">${r.text}</p>
+        <div class="review-author">${r.author}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderReviewMovieSelect() {
+  const sel = document.getElementById('reviewMovie');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Choose a film —</option>' +
+    MOVIES.map(m => `<option value="${m.title}">${m.title} (${m.year})</option>`).join('');
+}
+
+function renderTopRated() {
+  const list = document.getElementById('topRatedList');
+  const preview = document.getElementById('topRatedPreview');
+  const sorted = [...MOVIES].sort((a, b) => b.score - a.score);
+
+  const itemHTML = (m, i) => `
+    <div class="top-item">
+      <div class="top-rank">${String(i + 1).padStart(2, '0')}</div>
+      <img src="${m.poster}" alt="${m.title}" class="top-thumb" onerror="this.src=''">
+      <div class="top-info">
+        <div class="top-title">${m.title}</div>
+        <div class="top-meta">dir. ${m.director} · ${m.year} · ${m.genre}</div>
+        <p class="top-synopsis">${m.synopsis}</p>
+        <div style="margin-top:10px">${renderStars(m.rating, 14)}</div>
+      </div>
+      <div class="top-score">
+        <div class="score-circle">${m.score}</div>
+        <div class="score-label">Score</div>
+      </div>
+    </div>`;
+
+  if (list) list.innerHTML = sorted.map((m, i) => itemHTML(m, i)).join('');
+  if (preview) preview.innerHTML = `<div class="top-list">${sorted.slice(0, 3).map((m, i) => itemHTML(m, i)).join('')}</div>`;
+}
+
+function renderTrailers() {
+  const grid = document.getElementById('trailersGrid');
+  if (!grid) return;
+  grid.innerHTML = MOVIES.map(m => `
+    <div class="trailer-card">
+      <div class="trailer-embed">
+        <iframe src="${m.trailer}" title="${m.title} Trailer"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="trailer-info">
+        <div class="trailer-title">${m.title}</div>
+        <div class="trailer-subtitle">dir. ${m.director} · ${m.year}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderMarquee() {
+  const track = document.getElementById('marqueeTrack');
+  if (!track) return;
+  const items = [...MOVIES, ...MOVIES].map(m =>
+    `<span class="marquee-item">${m.title}</span>`).join('');
+  track.innerHTML = items + items;
+}
+
+function renderFilmStrip() {
+  const strip = document.getElementById('filmStrip');
+  if (!strip) return;
+  const cells = [...MOVIES, ...MOVIES, ...MOVIES].map(m =>
+    `<div class="film-cell"><img src="${m.poster}" alt="${m.title}" onerror="this.style.display='none'"></div>`
+  ).join('');
+  strip.innerHTML = cells;
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(id) {
+  const movie = MOVIES.find(m => m.id === id);
+  if (!movie) return;
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-movie-title">${movie.title}</div>
+    <div class="modal-meta">
+      <span>${movie.year}</span>
+      <span>·</span>
+      <span>${movie.genre}</span>
+      <span>·</span>
+      <span>dir. ${movie.director}</span>
+    </div>
+    <div style="margin-bottom:16px">${renderStars(movie.rating, 18)} <span style="color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:22px;margin-left:10px">${movie.score}/100</span></div>
+    <p class="modal-synopsis">${movie.synopsis}</p>
+    <div style="display:flex;gap:12px;margin-top:8px">
+      <button class="btn-primary" onclick="showPage('trailers'); closeModal()"><span>Watch Trailer</span></button>
+      <button class="btn-ghost" onclick="showPage('reviews'); closeModal()">Write Review</button>
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ============================================================
+// FORM SUBMISSIONS
+// ============================================================
+function submitReview() {
+  const movie = document.getElementById('reviewMovie').value;
+  const name = document.getElementById('reviewName').value.trim() || 'Anonymous Cinephile';
+  const text = document.getElementById('reviewText').value.trim();
+  const ratingEl = document.querySelector('input[name="rating"]:checked');
+
+  if (!movie || !text || !ratingEl) {
+    showToast('Please fill in all fields ✦');
+    return;
+  }
+
+  const review = {
+    movie, author: name,
+    rating: parseInt(ratingEl.value),
+    score: parseInt(ratingEl.value) * 20,
+    text, date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  };
+
+  const stored = JSON.parse(localStorage.getItem('cinemaReviews') || '[]');
+  stored.push(review);
+  localStorage.setItem('cinemaReviews', JSON.stringify(stored));
+
+  document.getElementById('reviewMovie').value = '';
+  document.getElementById('reviewName').value = '';
+  document.getElementById('reviewText').value = '';
+  document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
+
+  const msg = document.getElementById('reviewSuccess');
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 3000);
+
+  renderReviews();
+  showToast('Review published ✦');
+}
+
+function submitContact() {
+  const first = document.getElementById('cfirst').value.trim();
+  const email = document.getElementById('cemail').value.trim();
+  const message = document.getElementById('cmessage').value.trim();
+
+  if (!first || !email || !message) {
+    showToast('Please fill in required fields ✦');
+    return;
+  }
+
+  document.getElementById('cfirst').value = '';
+  document.getElementById('clast').value = '';
+  document.getElementById('cemail').value = '';
+  document.getElementById('cmessage').value = '';
+
+  const msg = document.getElementById('contactSuccess');
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 3000);
+  showToast('Message sent ✦');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// PAGE NAVIGATION
+// ============================================================
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// CUSTOM CURSOR
+// ============================================================
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursorRing');
+let mouseX = 0, mouseY = 0;
+let ringX = 0, ringY = 0;
+
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  cursor.style.left = mouseX - 6 + 'px';
+  cursor.style.top = mouseY - 6 + 'px';
+});
+
+function animateRing() {
+  ringX += (mouseX - ringX) * 0.12;
+  ringY += (mouseY - ringY) * 0.12;
+  cursorRing.style.left = ringX - 18 + 'px';
+  cursorRing.style.top = ringY - 18 + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+document.querySelectorAll('a, button, .movie-card, .top-item, .trailer-card, .review-card').forEach(el => {
+  el.addEventListener('mouseenter', () => cursorRing.classList.add('hovering'));
+  el.addEventListener('mouseleave', () => cursorRing.classList.remove('hovering'));
+});
+
+// ============================================================
+// INIT
+// ============================================================
+renderMarquee();
+renderFilmStrip();
+renderFeaturedGrid();
+renderMoviesPage();
+renderFilters();
+renderReviews();
+renderReviewMovieSelect();
+renderTopRated();
+renderTrailers();
+</script>
+</body>
+</html>
